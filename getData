@@ -1,0 +1,99 @@
+function sentline() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Sheet");
+  var sheetBase = ss.getSheetByName("Base");
+
+  var dataBase = sheetBase.getDataRange().getValues();
+  var dataInput = sheet.getDataRange().getValues();
+
+  var lastRowData = dataInput[dataInput.length-1];
+  var cutText = lastRowData[3].slice(2,18);
+
+
+  var state = false;
+  var lot;
+  var cutLocationLast;
+  var cutLocationFirst;
+
+  if(lastRowData[6]!=null){
+    lot=lastRowData[6];
+  }
+  setLot();
+  var countDatabase = dataBase.length;
+
+  // Logger.log(lastRowData[2].slice(0,2));
+
+  function setLot(){
+  if(lastRowData[2].slice(0,2)=="93"||lastRowData[5].slice(0,2)=="93"){
+    cutLocationFirst = lastRowData[2].split("93");
+    cutLocationLast = lastRowData[5].split("93");
+    cutLocationFirst = cutLocationFirst[1];
+    cutLocationLast = cutLocationLast[1];
+    Logger.log(cutLocationFirst +"and"+cutLocationLast)
+  }
+  else{
+    cutLocationFirst = lastRowData[2]
+    cutLocationLast = lastRowData[5]
+    Logger.log(cutLocationFirst +"and"+cutLocationLast)
+  }
+  }
+  //เหลือโลจิคห้อง C และพื้นที่แปลกๆทั้งหมดน่าจะต้องใช้databaseเข้าช่วย เช็คดีๆเผื่อไม่ต้องใช้
+  
+  var tokenLine = 'nfe3Xx6NbLiFuXL9mpPE0X8TTZ3leTgZu31aQCre7b0';  // Token
+
+  for(var i = 0;i <= countDatabase;i++){
+    if(cutText == dataBase[i][0]){
+      
+      var nameProduct = dataBase[i][1];
+      state = true;
+
+      if(lot==null){
+      var lotFirst = lastRowData[3].split("]C");
+      var lotSec = lotFirst[1].split("110");
+      var lotLast = lotSec[1];
+      //lestGo(nameProduct,lotLast);
+      }
+      else{
+        //lestGo(nameProduct,lot);
+      }
+      return Logger.log(state);  
+    }
+
+    else if(i==countDatabase-1 && state==false){
+      if(lot==null){
+      //lestGo(lastRowData[3],"ไม่ทราบLot");
+      }
+      else{
+        //lestGo(lastRowData[3],lot);
+      }
+      return Logger.log(state+' count is '+i+' and '+dataBase.length);  
+    }
+   }
+
+  function lestGo(ms,getLot)
+  {
+    var message = lastRowData[0] + "\n";
+    message = message + lastRowData[1] + " ได้ทำการย้ายสินค้า" + "\n";
+    message = message + ms + "\n";
+    message = message + "จำนวน " + lastRowData[4] +" Box" +"\n";
+    message = message + "Lot " + getLot + "\n";
+    message = message + "จาก " + cutLocationFirst[1] +"\n";
+    message = message + "ไปที่ " + cutLocationLast[1] +"\n";
+    sendMS(tokenLine , message);
+  }  
+}
+ 
+function sendMS(to,message)
+{
+  var formData = {
+    'message': message,
+  };
+ 
+  var options = {
+    'method' : 'post',
+    'headers' : {'Authorization': "Bearer "+to},
+    'contentType': 'application/x-www-form-urlencoded',
+    'payload' : formData
+  };
+  UrlFetchApp.fetch('https://notify-api.line.me/api/notify', options);
+}
